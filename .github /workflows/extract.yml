@@ -1,0 +1,44 @@
+name: Extract main.zip to Root
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract and Move to Root
+        run: |
+          if [ ! -f "main.zip" ]; then
+            echo "❌ فایل main.zip نیست!"
+            exit 1
+          fi
+          
+          echo "📦 اکسترکت..."
+          unzip -o main.zip
+          
+          # اگر پوشه main وجود دارد، محتویاتش را به ریشه منتقل کن
+          if [ -d "main" ]; then
+            echo "📂 انتقال از پوشه main به ریشه..."
+            mv main/* . 2>/dev/null || true
+            mv main/.* . 2>/dev/null || true
+            rm -rf main
+          fi
+          
+          rm main.zip
+          echo "✅ اکسترکت و انتقال کامل شد"
+
+      - name: Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Extract main.zip to root [skip ci]
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com
